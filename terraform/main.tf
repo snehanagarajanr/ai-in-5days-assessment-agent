@@ -19,7 +19,7 @@ variable "project_id" {
   default     = "incident-agent-prod"
 }
 
-# Secure Secret Management: Provisions Secret Manager secret instead of hardcoded keys
+# Secure Secret Management: Provisions Secret Manager secret instead of hardcoded API keys
 resource "google_secret_manager_secret" "gemini_api_key" {
   secret_id = "gemini-agent-api-key"
 
@@ -28,7 +28,6 @@ resource "google_secret_manager_secret" "gemini_api_key" {
   }
 }
 
-# Cloud Run service definition for Agent Deployment
 resource "google_cloud_run_v2_service" "agent_service" {
   name     = "incident-triage-agent"
   location = "us-central1"
@@ -36,12 +35,14 @@ resource "google_cloud_run_v2_service" "agent_service" {
   template {
     containers {
       image = "gcr.io/${var.project_id}/incident-triage-agent:latest"
-
       env {
         name = "GEMINI_API_KEY"
         value_source {
           secret_key_ref {
-            sec            sec            sec cr          ap            sec            secrs            sec                    s
+            secret  = google_secret_manager_secret.gemini_api_key.secret_id
+            version = "latest"
+          }
+        }
       }
     }
   }
